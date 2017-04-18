@@ -5,7 +5,8 @@ all: main.tex
 	pdflatex -interaction=nonstopmode main.tex ; \
 	biber main; \
 	pdflatex -interaction=nonstopmode main.tex ;\
-	pdflatex -interaction=nonstopmode main.tex
+	pdflatex -interaction=nonstopmode main.tex; \
+	mv main.pdf the-nanvix-kernel.pdf
 
 clean:
 	rm -f             \
@@ -19,7 +20,7 @@ clean:
 		*.xml         \
 		*.toc         \
 		*.fdb_latexmk \
-		main.pdf         \
+		the-nanvix-kernel.pdf         \
 		*.gz          \
 		*.glo         \
 		*.ist         \
