@@ -1,0 +1,16 @@
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fls
+*.log
+*.out
+*.xml
+*.toc
+*.fdb_latexmk
+main.pdf
+*.gz
+*.glo
+*.ist
+*.acn
+
