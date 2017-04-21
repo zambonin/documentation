@@ -120,15 +120,14 @@ exported by this subsystem.
 	selected in a round-robin fashion.
 
 	% Priorities of a process.
-	The priority of a process changes over the time and it is given
-	by the sum of three numbers: base priority, dynamic priority and
-	nice value. The base priority is assigned by the kernel itself
-	and changes as the process sleeps and wakes up from resource
-	queues, and leaves the kernel or enters it. The dynamic priority
-	is increased by the scheduler as the process waits longer in the
-	ready queue. Finally, the nice value is adjusted by the users,
-	exporting them a mechanism to control which processes are more
-	priority over others.
+	The priority of a process changes over the time and it is based on
+	the base priority, dynamic priority and nice value. The base
+	priority is assigned by the kernel itself and changes as the process
+	sleeps and wakes up from resource queues, and leaves the kernel or
+	enters it. The dynamic priority is increased by the scheduler as the
+	process waits longer in the ready queue. Finally, the nice value is
+	adjusted by the users, exporting them a mechanism to control which
+	processes are more priority over others.
 
 	% Process switching.
 	Once the scheduler chooses which process to run next, the
