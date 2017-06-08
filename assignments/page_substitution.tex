@@ -1,0 +1,68 @@
+\documentclass[12pt]{article}
+
+\usepackage[brazil]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper, margin=1.5cm]{geometry}
+\usepackage[colorlinks, urlcolor=blue, citecolor=red]{hyperref}
+\usepackage[utf8]{inputenc}
+
+\title{\textbf{Implementação do algoritmo de envelhecimento
+  de páginas para o Nanvix}}
+\author{
+  Gustavo F. Guimarães, Gustavo Zambonin, Marcello Klingelfus\thanks{
+    \texttt{\{gustavo.g,gustavo.zambonin,marcello.klingelfus\}@grad.ufsc.br}
+    \hfill \texttt{\href{https://github.com/zambonin/nanvix}{src/}}
+  } \\
+  \small{Sistemas Operacionais I (UFSC -- INE5412)}
+}
+\date{}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\maketitle
+
+\section{Descrição do algoritmo}
+
+A associação de um contador a cada página, relacionado ao bit de referência
+(bit R) e modificado a cada interrupção de relógio, é uma maneira razoável de
+verificar quais páginas foram referenciadas mais frequentemente; desse modo,
+páginas pouco utilizadas serão corretamente removidas da tabela no evento de
+uma falta de página. É necessário implementar esse processo de atualização dos
+contadores por software, visto que suporte de hardware para este recurso é
+esparso. \\
+
+A estratégia chamada de algoritmo do envelhecimento (\emph{aging}) é baseada
+neste comportamento, utilizando uma construção específica para os contadores: a
+cada $n$ interrupções de relógio (visto que o processo de atualização é
+custoso, limita-se seu acionamento), o conteúdo de tais variáveis passa por um
+deslocamento aritmético à direita, efetivamente resultando em uma divisão por
+2, e o bit R é adicionado ao bit mais significativo, assim representando a
+página por um contador `'alto`', consequentemente simbolizando que não deve ser
+removida em breve.
+
+\section{Características da implementação}
+
+Inicialmente, é necessário filtrar o número de vezes em que o algoritmo de
+envelhecimento é executado. Utilizando-se do contador principal de \emph{ticks}
+do sistema, um número $k$ impõe a frequência em que o evento da modificação de
+contadores acontece. Para diminuir o preço da verificação de módulo,
+$k = 2^n - 1$ pode ser utilizado; assim, apenas uma instrução de máquina é
+necessária. Tal número $n$ foi escolhido por inspeção; observa-se que um valor
+elevado mascara grande parte das referências às paginas, e um valor pequeno
+gera grande ônus de processamento. Por fim, caso o resultado do módulo seja
+nulo, a função \texttt{page\_aging} é chamada. \\
+
+Declarada em \texttt{include/nanvix/mm.h} e definida em
+\texttt{src/kernel/mm/paging.c}, as entradas da tabela de páginas são
+modificadas iterativamente; caso o processo atual seja dono de uma moldura de
+página, esta é então traduzida para uma página da tabela, que contém o bit R
+necessário para a execução do algoritmo. Os deslocamentos necessários são
+realizados e o bit R é zerado, para assegurar que uma página deve ser
+referenciada entre os períodos da atualização de contadores. A função
+\texttt{allocf} é levemente modificada para que, quando uma página seja
+alocada, seu contador inicie com o bit mais significativo ativado, para
+demonstrar que foi referenciada.
+
+\end{document}
