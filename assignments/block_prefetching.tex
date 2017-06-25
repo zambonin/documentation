@@ -1,0 +1,64 @@
+\documentclass[12pt]{article}
+
+\usepackage[brazil]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper, margin=1.5cm]{geometry}
+\usepackage[colorlinks, urlcolor=blue, citecolor=red]{hyperref}
+\usepackage[utf8]{inputenc}
+
+\title{\textbf{Leitura assíncrona de blocos de dados no Nanvix}}
+\author{
+  Gustavo F. Guimarães, Gustavo Zambonin, Marcello Klingelfus\thanks{
+    \texttt{\{gustavo.g,gustavo.zambonin,marcello.klingelfus\}@grad.ufsc.br}
+    \hfill \texttt{\href{https://github.com/zambonin/nanvix}{src/}}
+  } \\
+  \small{Sistemas Operacionais I (UFSC -- INE5412)}
+}
+\date{}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\maketitle
+
+\section{Descrição da técnica}
+
+Em um computador, a hierarquia de memória é geralmente organizada considerando
+a velocidade de acesso de dados dentro do hardware. O armazenamento secundário,
+em sua maioria discos magnéticos, está no nível mais baixo -- longe do
+processador e, por conta de seu funcionamento essencialmente mecânico, o mais
+lento dos dispositivos de armazenamento de dados. Por conta dessa
+característica, é necessário que acessos ao disco sejam reduzidos ou
+aproveitados ao máximo, a fim de manter a responsividade do sistema. \\
+
+Para tal, a técnica de \emph{prefetching} pode ser utilizada: consiste da
+leitura antecipada de dados do disco, de modo assíncrono, para uma estrutura
+localizada junto ao sistema operacional, chamada de \emph{buffer cache}. É
+possível observar que, em casos de acesso sequencial a um arquivo, blocos
+adjacentes ao desejado serão lidos e assim menos faltas serão geradas na cache
+supracitada, por exemplo.
+
+\section{Características da implementação}
+
+De acordo com a descrição da técnica, é necessário que blocos adjacentes
+válidos sejam lidos. Assim, a função \texttt{src/kernel/fs/file.c:file\_read}
+foi modificada de modo a iterar sobre novos blocos (cuja quantidade é
+configurada a partir de \texttt{include/fs/minix.h:BLOCK\_AHEAD}) e, caso estes
+contenham dados, sejam lidos de modo assíncrono por
+\texttt{src/kernel/fs/buffer.c:bread}. Para que não fosse necessário modificar
+todas as chamadas deste, uma nova função \texttt{abread} foi criada com a
+lõgica considerando um novo argumento, decidindo se a leitura será assíncrona,
+e a função antiga funciona como um \emph{wrapper}, preservando assim a
+interface. \\
+
+Na nova função, é necessário considerar a atualização de um atributo
+do buffer, mostrando se a leitura será síncrona
+(\texttt{src/kernel/fs/fs.h:BUFFER\_SYNC}). Se este for o caso, o fluxo de
+código continua o mesmo; de modo contrário, o comportamento do escalonador de
+disco será diferenciado por conta da mudança em
+\texttt{src/kernel/dev/ata/ata.c:ata\_readblk}, que leva em conta a \emph{flag}
+descrita acima para modificar o tipo de requisição
+(\texttt{src/kernel/dev/ata/ata.c:REQ\_SYNC}).
+
+\end{document}
